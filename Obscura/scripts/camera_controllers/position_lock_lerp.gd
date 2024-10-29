@@ -12,8 +12,6 @@ func _ready() -> void:
 	super()
 	position = target.position
 	_last_pos = target.global_position
-	follow_speed = 0.25 * target.BASE_SPEED
-	catchup_speed = 0.5 * target.BASE_SPEED
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -24,36 +22,37 @@ func _process(delta: float) -> void:
 		draw_logic()
 		
 	
-	var speed_x := follow_speed
-	var speed_z := follow_speed
+	var speed_x := follow_speed * target.BASE_SPEED
+	var speed_z := follow_speed * target.BASE_SPEED
 	var tpos := target.global_position
 	var cpos := global_position
 	
+	var offset = tpos-cpos
 
 	
 	if is_zero_approx(target.velocity.x):
-		speed_x = catchup_speed
+		speed_x = catchup_speed * target.BASE_SPEED
 	
 	if is_zero_approx(target.velocity.z):
-		speed_z = catchup_speed
+		speed_z = catchup_speed * target.BASE_SPEED
 		
 	if abs(tpos.x - cpos.x) > leash_distance:
-		#if $vessel/ParticleTrail.visible:
-			#speed_x = target.HYPER_SPEED
-		#else:
-		speed_x = 3 * target.BASE_SPEED
+		if target.dashing:
+			speed_x = target.HYPER_SPEED
+		else:
+			speed_x = 3 * target.BASE_SPEED
 		
 	if abs(tpos.z - cpos.z) > leash_distance:
-		#if $vessel/ParticleTrail.visible:
-			#speed_x = target.HYPER_SPEED
+		speed_z = 10 * (offset.z) / delta
+		#if target.dashing:
+			#speed_z = 3 * target.HYPER_SPEED
 		#else:
+			#speed_z = 3 * target.BASE_SPEED
 		
-		speed_z = 3 * target.BASE_SPEED
-		
-	if abs(cpos.x - tpos.x) <= 0.25:
+	if abs(cpos.x - tpos.x) <= (speed_x / target.BASE_SPEED) - .05:
 		speed_x = 0.0
 		
-	if abs(cpos.z - tpos.z) <= 0.25:
+	if abs(cpos.z - tpos.z) <= (speed_z / target.BASE_SPEED) - .05:
 		speed_z = 0.0
 	
 	if tpos.x < cpos.x:
@@ -65,32 +64,40 @@ func _process(delta: float) -> void:
 	var speed : Vector3 = Vector3(speed_x, 0.0, speed_z)
 
 	#print(tpos)
-	print(speed)
-	var offset = tpos-cpos
-
-	print(offset)
+	#print(offset)
+	#print(speed/target.BASE_SPEED)
 	global_position.x += speed.x * delta
 	global_position.z += speed.z * delta
 	
-	if (abs(offset.x) <= 0.25) and not is_zero_approx(offset.x):
-		global_position.x = move_toward(cpos.x, tpos.x, 1)
+	#print(is_zero_approx(offset.x))
+	#print(is_zero_approx(offset.z))
+	#print(tpos)
+	#print(global_position)
+	if (speed.x == 0) and not is_zero_approx(offset.x):
+		global_position.x = tpos.x
 	
-	if (abs(offset.z) <= 0.25) and not is_zero_approx(offset.x):
-		global_position.z = lerp(cpos.z, tpos.z, 1)
+	if (speed.z == 0) and not is_zero_approx(offset.z):
+		global_position.z = tpos.z
 	
 	
 
 	if (offset.x > (leash_distance - .1)):
-		global_position.x = move_toward(cpos.x, tpos.x - leash_distance + .2, 1)
+		#global_position.x = move_toward(cpos.x, tpos.x - leash_distance + .2, 1)
+		global_position.x = tpos.x - leash_distance + .2
 	
 	if (offset.z > (leash_distance - .1)):
-		global_position.z = move_toward(cpos.z, tpos.z - leash_distance + .2, 1)
+		#global_position.z = move_toward(cpos.z, tpos.z - leash_distance + .2, 1)
+		global_position.z = tpos.z - leash_distance + .2
 		
 	if (offset.z < -(leash_distance - .1)):
-		global_position.z = move_toward(cpos.z, tpos.z + leash_distance - .2, 1)
+		#global_position.z = move_toward(cpos.z, tpos.z + leash_distance - .2, 1)
+		global_position.z = tpos.z + leash_distance - .2
+		#print(global_position)
 		
 	if (offset.x < -(leash_distance - .1)):
-		global_position.x = move_toward(cpos.x, tpos.x + leash_distance - .2, 1)
+		#global_position.x = move_toward(cpos.x, tpos.x + leash_distance - .2, 1)
+		global_position.x = tpos.x + leash_distance - .2
+		#print(global_position)
 
 	
 	

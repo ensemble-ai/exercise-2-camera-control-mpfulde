@@ -11,14 +11,18 @@ const WIDTH:float = RADIUS * 2.0
 const BASE_SPEED = 50
 const HYPER_SPEED = 300
 
+var dashing : bool = false
+
 func _physics_process(_delta):
 	
 	var speed = BASE_SPEED
 	$ParticleTrail.visible = false 
+	dashing = false
 	if Input.is_action_pressed("ui_accept"):
 		_play($Audio/HyperSpeed)
 		speed = HYPER_SPEED
 		$ParticleTrail.visible = true
+		dashing = true
 
 	if Input.is_action_just_pressed("raise_terrain"):
 		_play($Audio/Terraforming)
