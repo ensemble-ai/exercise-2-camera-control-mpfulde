@@ -1,7 +1,8 @@
-class_name PositionLockLerp
+class_name TargetFocusLerp
 extends CameraControllerBase
 
-@export var follow_speed : float
+@export var lead_speed : float
+@export var catchup_delay_duration : float
 @export var catchup_speed : float
 @export var leash_distance : float 
 @export var cross_width : int = 5
@@ -9,12 +10,13 @@ extends CameraControllerBase
 var _last_pos : Vector3
 var _speed : float
 var _delta_sum : float
+var _catchup_timer : float
 
 func _ready() -> void:
 	super()
 	position = target.position
 	_last_pos = target.global_position
-	_speed = follow_speed
+	_speed = lead_speed 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -23,6 +25,7 @@ func _process(delta: float) -> void:
 		return
 	
 	_delta_sum += delta
+
 	
 	if _delta_sum <= (target.cur_delta - target.last_delta):
 		return
@@ -41,9 +44,14 @@ func _process(delta: float) -> void:
 	
 
 	if target.velocity == Vector3.ZERO:
-		speed = lerp(speed, catchup_speed, 1)
+		_catchup_timer += delta
+		if _catchup_timer > catchup_delay_duration:
+			speed = lerp(speed, catchup_speed, 1)
+		else:
+			speed = lerp(speed, 0.0, 1)
 	else:
-		speed = lerp(speed, follow_speed, 1)
+		_catchup_timer = 0
+		speed = lerp(speed, lead_speed, 1)
 		
 		
 	if (abs(offset.x) >= leash_distance - .1) or (abs(offset.z) >= leash_distance - .1):
@@ -61,7 +69,8 @@ func _process(delta: float) -> void:
 	direction.y = 0
 	
 	print(offset)
-	#print(direction)
+	print(direction)
+	print(_catchup_timer)
 	global_position += direction * (target.cur_delta - target.last_delta)
 	
 	#global_position = lerp(global_position, tpos, speed)
@@ -135,5 +144,6 @@ func _bound_to_leash_circle(offset: Vector3) -> void:
 		#global_position.x = move_toward(cpos.x, tpos.x + leash_distance - .2, 1)
 		global_position.x = tpos.x + leash_distance
 		#print(global_position)
+
 func reset_camera_pos() -> void:
 	position = target.position
