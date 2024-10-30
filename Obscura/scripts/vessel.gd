@@ -12,8 +12,12 @@ const BASE_SPEED = 50
 const HYPER_SPEED = 300
 
 var dashing : bool = false
+var cur_delta : float = 0
+var last_delta : float = 0
 
-func _physics_process(_delta):
+func _physics_process(delta):
+	last_delta = cur_delta
+	cur_delta += delta
 	
 	var speed = BASE_SPEED
 	$ParticleTrail.visible = false 
