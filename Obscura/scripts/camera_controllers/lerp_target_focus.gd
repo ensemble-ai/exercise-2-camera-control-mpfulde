@@ -23,70 +23,44 @@ func _process(delta: float) -> void:
 	if !current:
 		reset_camera_pos()
 		return
-	
-	_delta_sum += delta
-
-	
-	if _delta_sum <= (target.cur_delta - target.last_delta):
-		return
-	else:
-		_delta_sum = 0.0
-	
+		
 	if draw_camera_logic:
 		draw_logic()
-		
 	
-	var speed := _speed
-	var tpos := target.global_position
-	var cpos := global_position
-	var offset = tpos-cpos
-	var direction = offset.normalized()
+	var speed := Vector3(lead_speed, 0, lead_speed)
+	var offset := target.global_position - global_position
+	var norm := offset.normalized()
+	norm.y = 0
+	
+	var valid_x : bool = offset.x > leash_distance - .1 and target.velocity.x <= 0
+	valid_x = valid_x or (offset.x < -(leash_distance + .1) and target.velocity.x >= 0)
+	
+	var valid_z : bool = offset.z > leash_distance - .1 and target.velocity.z <= 0
+	valid_z = valid_z or (offset.z < -(leash_distance + .1) and target.velocity.z >= 0)
+	
+	
+	if valid_x:
+		speed.x = 1
+	
+	if valid_z:
+		speed.z = 1
+
+	speed.x *= target.velocity.x
+	speed.z *= target.velocity.z
+	
+	global_position += speed * delta
 	
 
+	
 	if target.velocity == Vector3.ZERO:
 		_catchup_timer += delta
-		if _catchup_timer > catchup_delay_duration:
-			speed = lerp(speed, catchup_speed, 1)
-		else:
-			speed = lerp(speed, 0.0, 1)
-	else:
+		if _catchup_timer >= catchup_delay_duration:
+			global_position += norm * target.BASE_SPEED * catchup_speed * delta
+	
+	else :
 		_catchup_timer = 0
-		speed = lerp(speed, lead_speed, 1)
-		
-		
-	if (abs(offset.x) >= leash_distance - .1) or (abs(offset.z) >= leash_distance - .1):
-		if catchup_speed > 1:
-			speed = catchup_speed
-		else:
-			speed = 1
-	
-	direction *= speed
-	if target.dashing:
-		direction *= target.HYPER_SPEED
-	else:
-		direction *= target.BASE_SPEED
-	
-	direction.y = 0
-	
-	print(offset)
-	print(direction)
-	print(_catchup_timer)
-	global_position += direction * (target.cur_delta - target.last_delta)
-	
-	#global_position = lerp(global_position, tpos, speed)
-	
-	if (direction.x == 0) and not is_zero_approx(offset.x):
-		global_position.x = tpos.x
-	
-	if (direction.z == 0) and not is_zero_approx(offset.z):
-		global_position.z = tpos.z
-	
-	if (abs(offset.x) >= leash_distance - .1) or (abs(offset.z) >= leash_distance - .1):
-		_bound_to_leash_circle(offset)
-	
 	
 	super(delta)
-	_last_pos = tpos
 	
 func draw_logic() -> void:
 	var mesh_instance := MeshInstance3D.new()

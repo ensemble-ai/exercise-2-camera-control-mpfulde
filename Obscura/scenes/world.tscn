@@ -104,10 +104,10 @@ script = ExtResource("3_4fllx")
 [node name="TargetFocusLerpCamera" parent="." node_paths=PackedStringArray("target") instance=ExtResource("3_ttnp6")]
 transform = Transform3D(1, 0, 0, 0, 1.19249e-08, 1, 0, -1, 1.19249e-08, 0, 30, 0)
 script = ExtResource("7_yycy3")
-lead_speed = 2.0
-catchup_delay_duration = 3.0
-catchup_speed = 3.0
-leash_distance = 10.0
+lead_speed = 1.025
+catchup_delay_duration = 0.5
+catchup_speed = 0.25
+leash_distance = 3.0
 cross_width = 5
 target = NodePath("../Vessel")
 
