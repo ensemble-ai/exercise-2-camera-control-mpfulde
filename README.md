@@ -1,5 +1,17 @@
 # Camera Control Exercise
 
+## Some Notes
+
+Each stage is implemeneted on a how I understood it basis, and each exported value is defaulted to what helped me with testing. Different values work just fine, but in my opinion don't help visualize how the system works.
+
+Vessel was modified to tell whether or not it was in hyper speed mode, only relevent for stage 3.
+
+Apologies stage 3 is the most complicated the code gets, I found a simpler way to do it in Stage 4 but since stage 3 works I opted not to change it. 
+
+For this to work as intended make sure the max fps of the project is set to 60 fps, it should be already, but just in case. Stage 4 is most likely to break if this is not the case. Stage 3 was finished before I figured fps locking as the solution so in theory it has its own way to fix it, however locking fps to 60 works wonders.
+
+In each stage section there is a hyperlink to the script associated with the corresponding script.
+
 ## Description
 
 Your goal is to create several swappable camera control scripts for a top-down terraforming simulator.
@@ -31,6 +43,8 @@ The following are the basic criteria for each stage:
 ~~
 ## Stage 1 - position lock
 
+[Position lock](/Obscura/scripts/camera_controllers/position_lock.gd)
+
 This camera controller should always be centered on the `Vessel`. There are no additional fields to be serialized and usable in the inspector.
 
 Your controller should draw a 5 by 5 unit cross in the center of the screen when `draw_camera_logic` is true. 
@@ -38,6 +52,8 @@ Your controller should draw a 5 by 5 unit cross in the center of the screen when
 ![position-locking](https://lh6.googleusercontent.com/Bh_vzER7pXFZgRMsi158LA_q3Dg9LnykuR1cW3f8K8hgSI-BlNKLfocuGAhHRxbrcaeadtay_MgS55CO4eD0jyDIy0QB9SvAPHFnWQlDMKfN9QQJkL4RxAKc28_ymrCz) as found in Terraria, ©2011 Re-Logic.
 
 ## Stage 2 - framing with horizontal auto-scroll
+
+[Auto Scroller](/Obscura/scripts/camera_controllers/autoscroll.gd)
 
 In the grand tradition of [shmups](http://www.shmups.com/), this camera controller implements a frame-bound autoscroller. The player should be able to move inside a box constantly moving on the `z-x` plane denoted by `autoscroll_speed`. If the player is lagging behind and is touching the left edge of the box, the player should be pushed forward by that box edge.
 
@@ -51,6 +67,8 @@ Required exported fields:
 ![auto-scroll](https://lh3.googleusercontent.com/ob8Z5bAdjxI6C9hgzL1-EcIPNeUCxCGHuOK7TaQoGtkq0iczuaSw3usLF9oYhqJfrRWQTmsRFTNqoYNoX9KjHTsuOC_auBY68C24FQEN-a3a11bM25xQdfAZ8Ls7RuxS) as found in Scramble, ©1981 Konami.
 
 ## Stage 3 - position lock and lerp smoothing
+
+[Position Lock with lerp smoothing](/Obscura/scripts/camera_controllers/position_lock_lerp.gd)
 
 This camera controller generally behaves like the position lock controller from Stage 1. The major difference is that it does not immediately center on the player as the player moves. Instead, it approaches the player's position in `_process()`. It should follow the player at a `follow_speed` that is slower than the player. The camera will catch up to the player when the player is not moving. This approach should be done at `catchup_speed` that can be tuned for game feel. Finally, the distance between the vessel and the camera should never exceed `leash_distance`.
 
@@ -67,6 +85,8 @@ Required exported fields:
 
 ## Stage 4 - lerp smoothing target focus
 
+[Lerp smoothing with target focus](/Obscura/scripts/camera_controllers/lerp_target_focus.gd)
+
 This stage requires you to create a variant of the position-lock lerp-smoothing controller. The variation is that the center of the camera leads the player in the direction of the player's input. The position of the camera should approach to the player's position when the player stops moving. Much like stage 3's controller, the distance between the camera and target should increase when movement input is given (to a maximum of `leash_distnace`) and the camera should only be settled on the target when it has not moved `catchup_delay_duration`.
 
 Just as in Stage 3, the lerp in this camera is implicit in the parameterization and behavior. If you would like to more explicity use lerp, please do so. The instruction team can help you get started.
@@ -82,6 +102,8 @@ Required exported fields:
 ![lerp-smoothing with target-focus](https://lh3.googleusercontent.com/-zeUJrdvmQnbB8stwBJ-P9spyZVEJIHtxDATQPkniX1hc35Y6oCLXQaqfcCmKn_Sd1cXSHN2MF2BWn1SLmoAvQbg6rCC6h_HQtqEkplanN3iaXjNgDdixCf5SSdw-YTm) as found in Jazz Jackrabbit 2, ©1998 Epic Games.
 
 ## Stage 5 - 4-way speedup push zone
+
+[Speedup Push Zone](/Obscura/scripts/camera_controllers/speed_push_box.gd)
 
 This camera controller should implement a 4-directional version of the speedup push zone as seen in Super Mario Bros. The controller should move at the speed of the target multiplied by the `push_ratio` required exported variable in the direction of target's movement when the target is 1) moving, 2) not touching the outer zone pushbox, and 3) are betwen the speedup zone and the pushbox border. When the target is touching one side of the outer pushbox, the camera will move at the target's current movement speed in the direction of the touched side of the border box and at the `push_ratio` in the other direction (e.g., when the target is touching the top middle of the pushing box but is moving to the upper right, the camera will move at the target's speed in the y direction but at the `push_ratio` in the x direction). If the target touches two sides of the outer pushbox (i.e., the player is in the corner of the box), the camera will move at full player speed in both x and y directions. If the target moves within the inner-most area (i.e., inside the speedup zone's border and not between the speedup zone the outer pushbox), the camera should not move.
 
