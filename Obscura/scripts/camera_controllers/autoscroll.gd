@@ -1,9 +1,10 @@
 class_name Autoscroll
 extends CameraControllerBase
 
-@export var top_left : Vector2
-@export var bottom_right : Vector2
-@export var autoscroll_speed : Vector3
+#defaulted to tested values
+@export var top_left : Vector2 = Vector2(10, 10)
+@export var bottom_right : Vector2 = Vector2(10, 10)
+@export var autoscroll_speed : Vector3 = Vector3(-0.1, 0.0, -0.1)
 @export var map : TerrainManager
 
 # Called when the node enters the scene tree for the first time.
@@ -23,18 +24,17 @@ func _process(delta: float) -> void:
 	
 	global_position += autoscroll_speed
 	
+	# attempted way to keep camera in line with the map dimension
+	# does not work as intended when zoomed very out or very in
 	global_position.x = clamp(global_position.x, -map.width/2.0 + top_left.x + 20, map.width/2.0 - bottom_right.x - 20)
 	global_position.z = clamp(global_position.x, -map.height/2.0 + top_left.y + 20, map.height/2.0 - bottom_right.y - 20)
-	
-	
-	
 	
 	var tpos = target.global_position
 	var cpos = global_position
 	
-	
-	
 	#boundary checks
+	#similar to push_box however if the target exceeds the bounds move the target back into bounds
+	#rather than move the camera to keep up with target
 	#left
 	var diff_between_left_edges = (tpos.x - target.WIDTH / 2.0) - (cpos.x - top_left.x)
 	if diff_between_left_edges < 0:

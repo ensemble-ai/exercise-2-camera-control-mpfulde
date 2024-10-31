@@ -1,22 +1,18 @@
 class_name TargetFocusLerp
 extends CameraControllerBase
 
-@export var lead_speed : float
-@export var catchup_delay_duration : float
-@export var catchup_speed : float
-@export var leash_distance : float 
+# defaulted to tested values for how i like the speed
+@export var lead_speed : float = 1.025 
+@export var catchup_delay_duration : float = 0.5
+@export var catchup_speed : float = 0.25
+@export var leash_distance : float  = 3
 @export var cross_width : int = 5
 
-var _last_pos : Vector3
-var _speed : float
-var _delta_sum : float
 var _catchup_timer : float
 
 func _ready() -> void:
 	super()
 	position = target.position
-	_last_pos = target.global_position
-	_speed = lead_speed 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -27,6 +23,8 @@ func _process(delta: float) -> void:
 	if draw_camera_logic:
 		draw_logic()
 	
+	
+	# much more simplified version of the lerp handler
 	var speed := Vector3(lead_speed, 0, lead_speed)
 	var offset := target.global_position - global_position
 	var norm := offset.normalized()
@@ -38,10 +36,9 @@ func _process(delta: float) -> void:
 	var valid_z : bool = offset.z > leash_distance - .1 and target.velocity.z <= 0
 	valid_z = valid_z or (offset.z < -(leash_distance + .1) and target.velocity.z >= 0)
 	
-	
+	# if outside the leash distance and not moving back into the camera
 	if valid_x:
 		speed.x = 1
-	
 	if valid_z:
 		speed.z = 1
 
@@ -50,8 +47,7 @@ func _process(delta: float) -> void:
 	
 	global_position += speed * delta
 	
-
-	
+	# if not moving start hte catchup timer and then reset camera
 	if target.velocity == Vector3.ZERO:
 		_catchup_timer += delta
 		if _catchup_timer >= catchup_delay_duration:
@@ -94,30 +90,5 @@ func draw_logic() -> void:
 	await get_tree().process_frame
 	mesh_instance.queue_free()
 	
-func _bound_to_leash_circle(offset: Vector3) -> void:
-		
-	var tpos := target.global_position
-
-
-	print("Correcting offset")
-
-	if (offset.x > (leash_distance - .1)) and not is_zero_approx(target.velocity.x):
-		#global_position.x = move_toward(cpos.x, tpos.x - leash_distance + .2, 1)
-		global_position.x = tpos.x - leash_distance
-	
-	if (offset.z > (leash_distance - .1)) and not is_zero_approx(target.velocity.z):
-		#global_position.z = move_toward(cpos.z, tpos.z - leash_distance + .2, 1)
-		global_position.z = tpos.z - leash_distance
-		
-	if (offset.z < -(leash_distance - .1)) and not is_zero_approx(target.velocity.z):
-		#global_position.z = move_toward(cpos.z, tpos.z + leash_distance - .2, 1)
-		global_position.z = tpos.z + leash_distance
-		#print(global_position)
-		
-	if (offset.x < -(leash_distance - .1)) and not is_zero_approx(target.velocity.x):
-		#global_position.x = move_toward(cpos.x, tpos.x + leash_distance - .2, 1)
-		global_position.x = tpos.x + leash_distance
-		#print(global_position)
-
 func reset_camera_pos() -> void:
 	position = target.position

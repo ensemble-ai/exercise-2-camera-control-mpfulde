@@ -1,14 +1,19 @@
 class_name SpeedUpPushBox
 extends CameraControllerBase
 
-@export var push_ratio :float
-@export var pushbox_top_left: Vector2 
-@export var pushbox_bottom_right: Vector2
-@export var speedup_zone_top_left : Vector2 
-@export var speedup_zone_bottom_right : Vector2
+# defaulted to tested values
+@export var push_ratio :float = 0.95 # should be lower, but this helps visually seeing it works
+@export var pushbox_top_left: Vector2 = Vector2(10, 10)
+@export var pushbox_bottom_right: Vector2 = Vector2(10, 10)
+@export var speedup_zone_top_left : Vector2  = Vector2(3, 3) # both of these should be bigger but helps see it works 
+@export var speedup_zone_bottom_right : Vector2 = Vector2(3, 3)
 
+# zone information
+# in opposite speed zone but not own speed zone (for example top middle zone allow x movement)
 var _x_speed : bool = false
 var _z_speed : bool = false
+
+# in both own and opposite speed zone (corner boxes of speed zone/overlap area)
 var _x_zone : bool = false
 var _z_zone : bool = false
 
@@ -19,18 +24,24 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if !current:
+		reset_camera_pos()
 		return
 	
 	if draw_camera_logic:
+		# print outer push box
 		draw_logic()
+		# print speed zone inner box at 50% opacity
 		draw_speed_zone()
 	
 	var tpos = target.global_position
 	var cpos = global_position
-	
-	
 
 	#boundary checks for pushbox
+	#if within boundary check if in the speedzone and handle inputs appropriately
+	# 2 types of speedzone checks 
+	# 1. for x and z if in opposite speed zone (x in z speed zone)
+	# 2. if in 2 speed zones at once (corner boxes)
+	# logic for checking if a speed zone was entered is the same boundary check but on the speedzone box
 	#left
 	var diff_between_left_edges = (tpos.x - target.WIDTH / 2.0) - (cpos.x - pushbox_top_left.x)
 	if diff_between_left_edges < 0:
@@ -179,7 +190,9 @@ func draw_speed_zone() -> void:
 	immediate_mesh.surface_end()
 
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = Color.WEB_GRAY
+	material.albedo_color = Color.BLACK
+	material.transparency = 1 # enables transparency with the alpha value
+	material.albedo_color.a = 0.5
 	
 	add_child(mesh_instance)
 	mesh_instance.global_transform = Transform3D.IDENTITY
@@ -188,3 +201,6 @@ func draw_speed_zone() -> void:
 	#mesh is freed after one update of _process
 	await get_tree().process_frame
 	mesh_instance.queue_free()
+	
+func reset_camera_pos() -> void:
+	position = target.position
